@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+  role     Role
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  code        String   @unique
+  description String?
+  status      Status   @default(Active)
+  createdAt   DateTime @default(now())
+  boms        BOM[]
+}
+
+model Material {
+  id    String    @id @default(uuid())
+  name  String
+  code  String    @unique
+  type  String?
+  items BOMItem[]
+}
+
+model Unit {
+  id        String    @id @default(uuid())
+  name      String
+  shortName String
+  items     BOMItem[]
+}
+
+model Supplier {
+  id      String    @id @default(uuid())
+  name    String
+  code    String    @unique
+  address String?
+  items   BOMItem[]
+}
+
+model BOM {
+  id            String    @id @default(uuid())
+  name          String
+  effectiveFrom DateTime
+  revision      Int
+  createdAt     DateTime  @default(now())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+  items         BOMItem[]
+}
+
+model BOMItem {
+  id            String   @id @default(uuid())
+  quantity      Float
+  referenceCode String?
+  bomId         String
+  materialId    String
+  unitId        String
+  supplierId    String
+  bom           BOM      @relation(fields: [bomId], references: [id])
+  material      Material @relation(fields: [materialId], references: [id])
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+  unit          Unit     @relation(fields: [unitId], references: [id])
+}
+
+enum Role {
+  Admin
+  Designer
+}
+
+enum Status {
+  Active
+  Inactive
+}
